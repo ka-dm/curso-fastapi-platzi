@@ -2,7 +2,7 @@ from fastapi import FastAPI, Path, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from jwt_manager import creat_token
+from jwt_manager import create_token
 
 app = FastAPI()
 app.title = "Mi aplicacion con FastAPI"
@@ -64,7 +64,9 @@ def message():
 
 @app.post('/login', tags=['auth'])
 def login(user: User):
-    return user
+    if user.email == "admin" and user.password == "admin":
+        token: str = create_token(user.model_dump())
+    return JSONResponse(status_code=200, content=token)
 
 
 @app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200)
