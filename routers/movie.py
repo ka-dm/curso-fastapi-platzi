@@ -6,9 +6,29 @@ from config.databese import Session
 from models.movie import Movie as MovieModel
 from fastapi.encoders import jsonable_encoder
 from middlewares.jwt_bearer import JWTBearer
-
+from services.movie import MovieService
 
 movie_router = APIRouter()
+
+
+movies = [
+    {
+        "id": 1,
+        "title": "Avatar",
+        "overview": "En un exuberante planeta llamado Pandora viven los Na'vi, seres que...",
+        "year": "2009",
+        "rating": 7.8,
+        "category": "Acción"
+    },
+    {
+        "id": 2,
+        "title": "Avatar 2",
+        "overview": "En un exuberante planeta llamado Pandora viven los Na'vi, seres que...",
+        "year": "20010",
+        "rating": 7.8,
+        "category": "Acción"
+    }
+]
 
 
 class Movie(BaseModel):
@@ -32,17 +52,18 @@ class Movie(BaseModel):
         }
 
 
-@movie_router.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200, dependencies=[Depends(JWTBearer())])
+# , dependencies=[Depends(JWTBearer())]
+@movie_router.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200)
 def get_movies() -> List[Movie]:
     db = Session()
-    result = db.query(MovieModel).all()
+    result = MovieService(db).get_movies()
     return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
 @movie_router.get('/movies/{id}', tags=['movies'], response_model=List[Movie], status_code=200)
 def get_movie(id: int = Path(ge=1, le=2000)) -> Movie:
     db = Session()
-    result = db.query(MovieModel).filter(MovieModel.id == id).first()
+    result = MovieService(db).get_movie(id)
     if not result:
         return JSONResponse(status_code=404, content={'message': "No encontrado"})
 
